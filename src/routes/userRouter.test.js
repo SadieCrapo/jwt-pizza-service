@@ -32,6 +32,17 @@ test('update self', async () => {
     expect(updateRes.body.token).toMatch(/^[a-zA-Z0-9\-_]*\.[a-zA-Z0-9\-_]*\.[a-zA-Z0-9\-_]*$/);
 });
 
+test('delete user', async () => {
+    newUser.email = Math.random().toString(36).substring(2, 12) + '@test.com';
+    const registerRes = await request(app).post('/api/auth').send(newUser);
+    const newUserAuthToken = registerRes.body.token;
+    const newUserId = registerRes.body.user.id;
+
+    const deleteRes = await request(app).delete(`/api/user/${newUserId}`).set('Authorization', `Bearer ${newUserAuthToken}`).send();
+    expect(deleteRes.status).toBe(200);
+    expect(deleteRes.body.message).toBe('user deleted');
+});
+
 test('update exception', async () => {
     newUser.name = Math.random().toString(36).substring(2, 12) + '@test.com';
     const registerRes = await request(app).post('/api/auth').send(newUser);
