@@ -46,3 +46,14 @@ test('add item exception', async () => {
     expect(addRes.status).toBe(403);
     expect(addRes.body.message).toEqual('unable to add menu item');
 });
+
+test('get menu', async () => {
+    let expectedMenu = [];
+    expectedMenu.push(await addMenuItem());
+    expectedMenu.push(await addMenuItem());
+    expectedMenu.push(await addMenuItem());
+
+    const getRes = await request(app).get('/api/order/menu');
+    expect(getRes.status).toBe(200);
+    expect(getRes.body).toEqual(expect.arrayContaining([expect.objectContaining(expectedMenu[0]), expect.objectContaining(expectedMenu[1]), expect.objectContaining(expectedMenu[2])]));
+});
