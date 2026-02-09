@@ -31,3 +31,12 @@ test('update self', async () => {
     expect(updateRes.body.user).toMatchObject(expectedUser);
     expect(updateRes.body.token).toMatch(/^[a-zA-Z0-9\-_]*\.[a-zA-Z0-9\-_]*\.[a-zA-Z0-9\-_]*$/);
 });
+
+test('update exception', async () => {
+    newUser.name = Math.random().toString(36).substring(2, 12) + '@test.com';
+    const registerRes = await request(app).post('/api/auth').send(newUser);
+    const newUserId = registerRes.body.user.id;
+    const updateRes = await request(app).put(`/api/user/${newUserId}`).set('Authorization', `Bearer ${testUserAuthToken}`).send(newUser);
+    expect(updateRes.status).toBe(403);
+    expect(updateRes.body.message).toBe('unauthorized');
+});
