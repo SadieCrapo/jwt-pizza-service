@@ -3,7 +3,6 @@ const app = require('../service');
 
 const testUser = { name: 'pizza diner', email: 'reg@test.com', password: 'a' };
 const newUser = { name: 'new user', email: 'new@test.com', password: 'b' };
-const fakeUser = { name: 'fake user', email: 'fake@test.com', password: 'c' };
 let testUserAuthToken;
 let testUserId;
 

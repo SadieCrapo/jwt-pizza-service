@@ -29,7 +29,7 @@ async function createAdminUser() {
   adminUser.email = adminUser.name + '@admin.com';
   adminUser.roles = [{ role: Role.Admin }];
 
-  user = await DB.addUser(adminUser);
+  let user = await DB.addUser(adminUser);
   return { ...user, password: 'toomanysecrets' };
 }
 
