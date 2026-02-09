@@ -22,3 +22,12 @@ test('get user', async () => {
     delete expectedUser.password;
     expect(getRes.body).toMatchObject(expectedUser);
 });
+
+test('update self', async () => {
+    const expectedUser = { ...testUser, name: Math.random().toString(36).substring(2, 12) + '@test.com', password: 'd' };
+    const updateRes = await request(app).put(`/api/user/${testUserId}`).set('Authorization', `Bearer ${testUserAuthToken}`).send(expectedUser);
+    expect(updateRes.status).toBe(200);
+    delete expectedUser.password;
+    expect(updateRes.body.user).toMatchObject(expectedUser);
+    expect(updateRes.body.token).toMatch(/^[a-zA-Z0-9\-_]*\.[a-zA-Z0-9\-_]*\.[a-zA-Z0-9\-_]*$/);
+});
