@@ -30,13 +30,16 @@ async function createAdminUser() {
   return { ...user, password: 'toomanysecrets' };
 }
 
-test('add menu item', async () => {
+async function addMenuItem() {
     newItem.title = Math.random().toString(36).substring(2, 12);
     newItem.description = Math.random().toString(36).substring(2, 12);
     const addRes = await request(app).put('/api/order/menu').set('Authorization', `Bearer ${adminUserAuthToken}`).send(newItem);
     expect(addRes.status).toBe(200);
     expect(addRes.body).toEqual(expect.arrayContaining([expect.objectContaining(newItem)]));
-});
+    return newItem;
+}
+
+test('add menu item', addMenuItem);
 
 test('add item exception', async () => {
     const addRes = await request(app).put('/api/order/menu').set('Authorization', `Bearer ${normalUserAuthToken}`).send(newItem);
