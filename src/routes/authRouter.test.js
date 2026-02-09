@@ -3,6 +3,7 @@ const app = require('../service');
 
 const testUser = { name: 'pizza diner', email: 'reg@test.com', password: 'a' };
 const newUser = { name: 'new user', email: 'new@test.com', password: 'b' };
+const fakeUser = { name: 'fake user', email: 'fake@test.com', password: 'c' };
 let testUserAuthToken;
 
 beforeAll(async () => {
@@ -45,6 +46,24 @@ test('logout', async () => {
     expect(logoutRes.status).toBe(200);
     expect(logoutRes.body.message).toBe('logout successful');
 });
+
+test('login exception', async () => {
+    const loginRes = await request(app).put('/api/auth').send(fakeUser);
+    expect(loginRes.status).toBe(404);
+    expect(loginRes.body.message).toBe('unknown user');
+});
+
+test('register exception', async () => {
+    const registerRes = await request(app).post('/api/auth').send({});
+    expect(registerRes.status).toBe(400);
+    expect(registerRes.body.message).toBe('name, email, and password are required');
+})
+
+test('logout exception', async () => {
+    const logoutRes = await request(app).delete('/api/auth').send(testUser);
+    expect(logoutRes.status).toBe(401);
+    expect(logoutRes.body.message).toBe('unauthorized');
+})
 
 function expectValidJwt(potentialJwt) {
   expect(potentialJwt).toMatch(/^[a-zA-Z0-9\-_]*\.[a-zA-Z0-9\-_]*\.[a-zA-Z0-9\-_]*$/);
