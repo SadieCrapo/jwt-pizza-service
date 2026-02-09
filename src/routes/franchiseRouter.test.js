@@ -4,6 +4,7 @@ const app = require('../service');
 const adminUser = { name: "admin user", email: "user@admin.com", password: "toomanysecrets" };
 let adminUserAuthToken;
 const newFranchise = { admins: [], name: "newest franchise", stores: [] };
+const newStore = { name: "store number one" }
 const { Role, DB } = require('../database/database.js');
 
 beforeAll(async () => {
@@ -33,6 +34,21 @@ async function createFranchise() {
     return createRes.body.id;
 }
 
+async function createStore(franchiseId) {
+    newStore.name = Math.random().toString(36).substring(2, 12);
+
+    const createRes = await request(app).post(`/api/franchise/${franchiseId}/store`).set('Authorization', `Bearer ${adminUserAuthToken}`).send(newStore);
+
+    expect(createRes.status).toBe(200);
+    expect(createRes.body).toMatchObject(newStore);
+    return createRes.body.id;
+}
+
+test('create store', async () => {
+    const franchiseId = await createFranchise();
+    createStore(franchiseId);
+});
+
 test('create franchise', createFranchise);
 
 test('delete franchise', async () => {
@@ -42,3 +58,14 @@ test('delete franchise', async () => {
     expect(deleteRes.status).toBe(200);
     expect(deleteRes.body.message).toBe('franchise deleted');
 });
+
+test('delete store', async () => {
+    const franchiseId = await createFranchise();
+    const storeId = await createStore(franchiseId);
+
+    const deleteRes = await request(app).delete(`/api/franchise/${franchiseId}/store/${storeId}`).set('Authorization', `Bearer ${adminUserAuthToken}`);
+
+    expect(deleteRes.status).toBe(200);
+    expect(deleteRes.body.message).toBe('store deleted');
+});
+
