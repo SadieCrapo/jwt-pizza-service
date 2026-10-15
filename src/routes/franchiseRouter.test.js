@@ -110,3 +110,71 @@ test('create store exception', async () => {
     expect(deleteRes.status).toBe(403);
     expect(deleteRes.body.message).toBe('unable to delete a store');
 });
+
+test('get franchises', async () => {
+    const franchiseId = await createFranchise();
+    const franchiseName = newFranchise.name;
+
+    const getRes = await request(app).get('/api/franchise');
+
+    expect(getRes.status).toBe(200);
+    expect(Array.isArray(getRes.body.franchises)).toBe(true);
+    expect(getRes.body.more).toBeDefined();
+
+    const found = getRes.body.franchises.find((f) => f.id === franchiseId);
+    expect(found).toBeDefined();
+    expect(found.name).toBe(franchiseName);
+    expect(found.stores).toBeDefined();
+    // Non-admin/unauthenticated callers should not get admin info back
+    expect(found.admins).toBeUndefined();
+});
+
+test('get franchises as admin', async () => {
+    const franchiseId = await createFranchise();
+    const franchiseName = newFranchise.name;
+
+    const getRes = await request(app).get('/api/franchise').set('Authorization', `Bearer ${adminUserAuthToken}`);
+
+    expect(getRes.status).toBe(200);
+    expect(Array.isArray(getRes.body.franchises)).toBe(true);
+
+    const found = getRes.body.franchises.find((f) => f.id === franchiseId);
+    expect(found).toBeDefined();
+    expect(found.name).toBe(franchiseName);
+    expect(found.stores).toBeDefined();
+    // Admin callers should get the full franchise detail, including admins
+    expect(found.admins).toBeDefined();
+    expect(Array.isArray(found.admins)).toBe(true);
+});
+
+test('get user franchises', async () => {
+    const dbTestUser = await DB.getUser(testUser.email, testUser.password);
+    const userId = dbTestUser.id;
+
+    // A user with no franchises should get an empty array back
+    const emptyRes = await request(app).get(`/api/franchise/${userId}`).set('Authorization', `Bearer ${testUserAuthToken}`);
+    expect(emptyRes.status).toBe(200);
+    expect(emptyRes.body).toEqual([]);
+
+    // Create a franchise with testUser as a franchisee admin
+    const franchiseWithAdmin = { admins: [{ email: testUser.email }], name: Math.random().toString(36).substring(2, 12), stores: [] };
+    const createRes = await request(app).post('/api/franchise').set('Authorization', `Bearer ${adminUserAuthToken}`).send(franchiseWithAdmin);
+    expect(createRes.status).toBe(200);
+    const franchiseId = createRes.body.id;
+
+    const getRes = await request(app).get(`/api/franchise/${userId}`).set('Authorization', `Bearer ${testUserAuthToken}`);
+
+    expect(getRes.status).toBe(200);
+    expect(Array.isArray(getRes.body)).toBe(true);
+
+    const found = getRes.body.find((f) => f.id === franchiseId);
+    expect(found).toBeDefined();
+    expect(found.name).toBe(franchiseWithAdmin.name);
+    expect(found.admins).toBeDefined();
+    expect(found.admins.some((a) => a.email === testUser.email)).toBe(true);
+
+    // An admin should also be able to look up another user's franchises
+    const adminGetRes = await request(app).get(`/api/franchise/${userId}`).set('Authorization', `Bearer ${adminUserAuthToken}`);
+    expect(adminGetRes.status).toBe(200);
+    expect(adminGetRes.body.some((f) => f.id === franchiseId)).toBe(true);
+});
