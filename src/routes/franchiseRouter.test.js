@@ -15,6 +15,7 @@ beforeAll(async () => {
     const loginRes = await request(app).put('/api/auth').send(adminUser);
 
     testUser.name = Math.random().toString(36).substring(2, 12);
+    testUser.email = Math.random().toString(36).substring(2, 12) + '@test.com';
     const registerRes = await request(app).post('/api/auth').send(testUser);
 
     expect(loginRes.status).toBe(200);
