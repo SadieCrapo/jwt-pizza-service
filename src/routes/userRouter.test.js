@@ -39,13 +39,13 @@ test('list users unauthorized', async () => {
 });
 
 test('list users', async () => {
-  const { password, ...cleanedTestUser } = testUser;
+  const cleanedTestUser = testUser;
+  delete cleanedTestUser.password;
+
   const listUsersRes = await request(app)
     .get('/api/user')
     .set('Authorization', 'Bearer ' + adminUserAuthToken);
   expect(listUsersRes.status).toBe(200);
-  console.log({ ...cleanedTestUser, roles: [ { role: 'diner' } ] });
-  console.log(listUsersRes.body);
   expect(listUsersRes.body.users).toEqual(expect.arrayContaining([expect.objectContaining({ ...cleanedTestUser, roles: [ { role: 'diner' } ] })]));
 });
 
@@ -86,18 +86,6 @@ test('update exception', async () => {
     expect(updateRes.status).toBe(403);
     expect(updateRes.body.message).toBe('unauthorized');
 });
-
-async function registerUser(service) {
-  const testUser = {
-    name: 'pizza diner',
-    email: `${randomName()}@test.com`,
-    password: 'a',
-  };
-  const registerRes = await service.post('/api/auth').send(testUser);
-  registerRes.body.user.password = testUser.password;
-
-  return [registerRes.body.user, registerRes.body.token];
-}
 
 function randomName() {
   return Math.random().toString(36).substring(2, 12);
