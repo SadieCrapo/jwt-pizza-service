@@ -41,7 +41,7 @@ test('list users unauthorized', async () => {
 test('list users', async () => {
   const cleanedTestUser = testUser;
   delete cleanedTestUser.password;
-
+  
   const listUsersRes = await request(app)
     .get('/api/user')
     .set('Authorization', 'Bearer ' + adminUserAuthToken);
@@ -86,7 +86,3 @@ test('update exception', async () => {
     expect(updateRes.status).toBe(403);
     expect(updateRes.body.message).toBe('unauthorized');
 });
-
-function randomName() {
-  return Math.random().toString(36).substring(2, 12);
-}
